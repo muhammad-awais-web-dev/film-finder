@@ -1,5 +1,7 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
 
 function HeroCard() {
     const [movies, setMovies] = useState<
@@ -12,6 +14,33 @@ function HeroCard() {
         }[]
     >([]);
     const [highlighted, setHighlighted] = useState<number>(10);
+    const [tempHighlighted, setTempHighlighted] = useState<number>(10);
+    const tempBackdrop = useRef<HTMLDivElement>(null);
+
+    useGSAP(() => {
+        if (tempBackdrop.current) {
+            console.log("Animation triggered! temp highlighted: ", tempHighlighted, "highlighted: ", highlighted);
+            
+            const tl = gsap.timeline({
+                onComplete: () => {
+                    setTempHighlighted(highlighted);
+                },
+            });
+            
+            // Reset to full visibility first
+            tl.set(tempBackdrop.current, {
+                opacity: 1,
+                scale: 1,
+            });
+            
+            // Then animate out
+            tl.to(tempBackdrop.current, {
+                opacity: 0,
+                // scale: 0.1,
+                duration: 1,
+            });
+        }
+    }, [highlighted]);
 
     useEffect(() => {
         fetch("/api/tmdb?route=movie/popular")
@@ -29,6 +58,12 @@ function HeroCard() {
                         backgroundImage: `url('https://image.tmdb.org/t/p/w1280${movies[highlighted].backdrop_path}')`,
                     }}
                 >
+                    <div
+                    ref={tempBackdrop}
+                    className="absolute top-0 left-0 w-full rounded-lg h-full flex flex-col justify-end gap-2 bg-gray-800 p-5 bg-cover bg-center"
+                    style={{
+                        backgroundImage: `url('https://image.tmdb.org/t/p/w1280${movies[tempHighlighted].backdrop_path}')`,
+                    }}></div>
                     <div className="bg-black/40 h-full w-full z-0 absolute top-0 left-0"></div>
                     <div className="flex overflow-auto p-2 rounded-2xl gap-2 ">
                         <div className="relative overflow-hidden flex min-w-200 bg-black p-5 items-center gap-10 rounded-2xl h-full ">
@@ -58,11 +93,7 @@ function HeroCard() {
                                 key={index}
                                 className="relative overflow-hidden min-w-40 max-w-40 group relateive cursor-pointer flex flex-col justify-end transition-all duration-100 rounded-2xl h-60 bg-cover bg-center"
                                 style={{
-                                    backgroundImage: `url('https://image.tmdb.org/t/p/w500${movies[(index + highlighted + 1) % movies.length].poster_path}')`,
-                                    border:
-                                        index === highlighted
-                                            ? "4px solid white"
-                                            : "none",
+                                    backgroundImage: `url('https://image.tmdb.org/t/p/w500${movies[(index + highlighted + 1) % movies.length].poster_path}')`
                                 }}
                                 onClick={() =>
                                     setHighlighted(
