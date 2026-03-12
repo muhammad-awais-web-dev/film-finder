@@ -124,29 +124,41 @@ function HeroCard() {
             }}
           ></div>
           <div className="bg-black/40 h-full w-full z-0 absolute top-0 left-0"></div>
-          <div className=" absolute top-0 right-0 w-fit h-30 gap-10 bg-amber-400 flex justify-center items-center z-10">
-            <div className="flex w-full justify-between ">
+          <div className=" absolute top-0 right-0 w-fit h-30 gap-10 bg-white/40 backdrop-blur-lg rounded-bl-2xl flex justify-center items-center z-10">
+            <div className="flex flex-col w-20 gap-2 justify-center items-center ">
+              <div className=" h-15 w-15 bg-white rounded-full flex items-center justify-center " >
+
               <Star className="text-black" />
+              </div>
               <p className="text-black text-lg font-bold">
                 {movies[highlighted].vote_average}
               </p>
             </div>
-            <div className="flex w-full justify-between ">
+            <div className="flex flex-col w-20 gap-2 justify-center items-center ">
+              <div className=" h-15 w-15 bg-white rounded-full flex items-center justify-center " >
+
               <Vote className="text-black" />
+              </div>
               <p className="text-black text-lg font-bold">
                 {movies[highlighted].vote_count}
               </p>
             </div>
-            <div className="flex w-full justify-between ">
+            <div className="flex flex-col w-20 gap-2 justify-center items-center ">
+              <div className=" h-15 w-15 bg-white rounded-full flex items-center justify-center " >
+
               <Languages className="text-black" />
+              </div>
               <p className="text-black text-lg font-bold">
                 {movies[highlighted].original_language.toUpperCase()}
               </p>
             </div>
-            <div className="flex w-full justify-between ">
+            <div className="flex flex-col w-20 gap-2 justify-center items-center ">
+              <div className=" h-15 w-15 bg-white rounded-full flex items-center justify-center " >
+
               <Calendar className="text-black" />
+              </div>
               <p className="text-black text-lg font-bold">
-                {movies[highlighted].release_date}
+                {movies[highlighted].release_date.slice(0, 4)}
               </p>
             </div>
           </div>
