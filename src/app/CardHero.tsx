@@ -2,16 +2,17 @@
 import { useEffect, useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
+import ScrollTrigger from "gsap/ScrollTrigger";
 import {
   Calendar,
   ChevronLeft,
   ChevronRight,
   Languages,
-  Speaker,
   Star,
-  Users,
   Vote,
 } from "lucide-react";
+
+gsap.registerPlugin(ScrollTrigger);
 
 function HeroCard() {
   const [movies, setMovies] = useState<
@@ -35,6 +36,8 @@ function HeroCard() {
   const progress = useRef<HTMLDivElement>(null);
   const backdropTimeline = useRef<gsap.core.Timeline | null>(null);
   const progressTimeline = useRef<gsap.core.Timeline | null>(null);
+  const mainDiv = useRef<HTMLDivElement>(null);
+  const cardWrapper = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
     if (tempBackdrop.current) {
@@ -85,7 +88,7 @@ function HeroCard() {
       });
       progressTimeline.current = tl;
       tl.to(progress.current, {
-        width: "0%",
+        width: "2%",
         duration: 0.5,
       });
       tl.to(progress.current, {
@@ -100,6 +103,45 @@ function HeroCard() {
     }
   }, [highlighted, movies]);
 
+  useGSAP(() => {
+    if (mainDiv.current && cardWrapper.current) {
+      const cardFirstChild = cardWrapper.current.firstElementChild as HTMLElement;
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: mainDiv.current,
+          start: "top top",
+          end: "+=50%",
+          scrub: true,
+          pin: true,
+          anticipatePin: 1,
+          markers: false,
+        },
+      });
+
+      tl.from(
+        cardWrapper.current,
+        {
+          padding: 0,
+        }
+      )
+      .fromTo(
+        cardFirstChild,
+        {
+          border: "black 2px solid",
+          borderRadius: "0px",
+        },{
+          border: "2px solid white",
+          borderRadius: "20px",
+        },"<"
+      );
+
+      return () => {
+        tl.scrollTrigger?.kill();
+        tl.kill();
+      };
+    }
+  }, []);
+
   useEffect(() => {
     fetch("/api/tmdb?route=movie/popular")
       .then((res) => res.json())
@@ -108,17 +150,18 @@ function HeroCard() {
   }, []);
 
   return (
-    <div className="w-full h-screen p-24 overflow-hidden relative">
+    <div className="w-full h-[150vh] overflow-hidden relative" ref={mainDiv}>
+      <div className="w-full h-screen p-24  select-none " ref={cardWrapper}>
       {movies.length > 0 && movies[highlighted] ? (
         <div
-          className="relative w-full overflow-hidden rounded-lg h-full flex flex-col justify-end gap-2 bg-gray-800 p-5 bg-cover bg-center"
+          className="relative w-full overflow-hidden h-full flex flex-col justify-end gap-2 bg-gray-800 p-5 bg-cover bg-center"
           style={{
             backgroundImage: `url('https://image.tmdb.org/t/p/w1280${movies[highlighted].backdrop_path}')`,
           }}
         >
           <div
             ref={tempBackdrop}
-            className="absolute top-0 left-0 w-full rounded-lg h-full flex flex-col justify-end gap-2 bg-gray-800 p-5 bg-cover bg-center"
+            className="absolute  top-0 left-0 w-full rounded-2xl h-full flex flex-col justify-end gap-2 bg-gray-800 p-5 bg-cover bg-center"
             style={{
               backgroundImage: `url('https://image.tmdb.org/t/p/w1280${movies[tempHighlighted].backdrop_path}')`,
             }}
@@ -163,24 +206,24 @@ function HeroCard() {
             </div>
           </div>
           <div className="flex overflow-auto p-2 rounded-2xl items-center gap-2 ">
-            <div className="relative overflow-hidden flex min-w-fit bg-black p-5 items-center gap-10 rounded-2xl h-full ">
+            <div className="relative overflow-hidden flex w-full md:min-w-fit bg-black p-5 items-center gap-10 rounded-2xl h-full ">
               <div
                 className="absolute bottom-0 left-0 h-full mix-blend-exclusion w-0 bg-white rounded-md"
                 ref={progress}
               ></div>
               <div
-                className="relative w-35 h-45 bg-gray-800 rounded-md bg-cover bg-center"
+                className="relative min-w-35 h-45 bg-gray-800 rounded-md bg-cover bg-center"
                 style={{
                   backgroundImage: `url('https://image.tmdb.org/t/p/w185${movies[highlighted % movies.length].poster_path}')`,
                 }}
               ></div>
               <div className="mix-blend-exclusion flex flex-col items-start gap-5">
-                <h2 className="relative text-3xl w-100 text-white">
+                <h2 className="relative text-3xl w-[calc(100%-50px)] md:w-100 text-white">
                   {movies[highlighted].title.length < 25
                     ? movies[highlighted].title
                     : movies[highlighted].title.slice(0, 25) + "..."}
                 </h2>
-                <p className="relative w-100 text-white">
+                <p className="relative w-[calc(100%-50px)] h-25 md:h-fit overflow-hidden md:w-100 text-white">
                   {movies[highlighted].overview.length < 150
                     ? movies[highlighted].overview
                     : movies[highlighted].overview.slice(0, 150) + "..."}
@@ -219,7 +262,7 @@ function HeroCard() {
             {[0, 1, 2, 3, 4].map((index) => (
               <div
                 key={index}
-                className="relative overflow-hidden min-w-40 max-w-40 group relateive cursor-pointer flex flex-col justify-end transition-all duration-100 rounded-2xl h-60 bg-cover bg-center"
+                className="relative overflow-hidden min-w-40 max-w-40 group relateive cursor-pointer hidden md:flex flex-col justify-end transition-all duration-100 rounded-2xl h-60 bg-cover bg-center"
                 style={{
                   backgroundImage: `url('https://image.tmdb.org/t/p/w500${movies[(index + highlighted + 1) % movies.length].poster_path}')`,
                 }}
@@ -239,7 +282,7 @@ function HeroCard() {
           </div>
         </div>
       ) : (
-        <div className="skeletal-loading relative overflow-hidden w-full rounded-lg h-full flex flex-col justify-end gap-2 bg-gray-800 p-5 bg-cover bg-center">
+        <div className="skeletal-loading relative overflow-hidden w-full rounded-2lg h-full flex flex-col justify-end gap-2 bg-gray-800 p-5 bg-cover bg-center">
           <div className="flex gap-10">
             <div className="relative overflow-hidden flex min-w-200 max-w-200 h-fit bg-black p-5 items-center gap-10 rounded-2xl ">
               <div className="relative w-35 h-45 bg-gray-200 rounded-md bg-cover bg-center skeletal-loading"></div>
@@ -253,6 +296,8 @@ function HeroCard() {
           </div>
         </div>
       )}
+      <div className=" h-[50vh] " ></div>
+      </div>
     </div>
   );
 }
